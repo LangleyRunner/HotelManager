@@ -1,0 +1,158 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>HotelManager | Administración</title>
+<style>
+*{box-sizing:border-box}
+body{margin:0;font-family:Arial,sans-serif;background:#f4f6fa;color:#263447}
+header{background:#172b4d;color:white;padding:22px 35px;display:flex;justify-content:space-between;align-items:center}
+header h1{margin:0;font-size:25px}
+main{max-width:1100px;margin:35px auto;padding:0 20px}
+.card{background:white;border-radius:12px;padding:25px;margin-bottom:25px;box-shadow:0 3px 15px #0001}
+h2{margin-top:0}
+.grid{display:grid;grid-template-columns:repeat(4,1fr);gap:12px}
+input,select,button{padding:12px;border:1px solid #ccd3df;border-radius:7px;font-size:14px}
+button{background:#2563eb;color:white;border:0;cursor:pointer}
+button:hover{opacity:.85}
+.danger{background:#dc3545}
+.secondary{background:#64748b}
+table{width:100%;border-collapse:collapse}
+th,td{text-align:left;padding:14px;border-bottom:1px solid #e5e7eb}
+th{background:#edf2f9}
+.actions{display:flex;gap:8px}
+#mensaje{margin:15px 0;font-weight:bold}
+@media(max-width:750px){.grid{grid-template-columns:1fr}table{font-size:12px}.actions{flex-direction:column}}
+body{font-family:system-ui,-apple-system,Segoe UI,sans-serif;background:#eef3f7}header{background:linear-gradient(110deg,#10253d,#145d72);padding:26px 35px}header h1{letter-spacing:-1px}.card{border:1px solid #dbe4ec;border-radius:16px;box-shadow:0 8px 28px #17334c08}button{background:#146d83}button:focus-visible,a:focus-visible,input:focus-visible,select:focus-visible{outline:3px solid #e8af52;outline-offset:3px}a{color:#146d83}#resumen{font-size:20px;font-weight:600;color:#145d72}#mensaje{min-height:24px}h2{letter-spacing:-.4px}th{font-size:12px;text-transform:uppercase;letter-spacing:.6px;color:#506478}input,select{width:100%}.danger{background:#b64045}.secondary{background:#4f6578}@media(max-width:750px){header{gap:16px;align-items:flex-start;flex-direction:column}main{margin-top:20px}.card{padding:18px}} </style>
+</head>
+<body>
+<header>
+<h1>🏨 HotelManager</h1>
+<div>Panel de administración <button class="secondary" onclick="cerrarSesion()">Cerrar sesión</button></div>
+</header>
+<main><div class="card"><h2>Dashboard</h2><p id="resumen">Cargando indicadores…</p><a href="#formulario">Registrar habitación</a> · <a href="#tabla">Ver habitaciones</a></div>
+<div class="card">
+<h2>Gestión de habitaciones</h2>
+<p>Registra, consulta, actualiza y elimina habitaciones del hotel.</p>
+<form id="formulario">
+<input type="hidden" id="id">
+<div class="grid">
+<input id="numero" type="number" min="1" max="2147483647" placeholder="Número" required>
+<select id="tipo" required>
+<option value="">Tipo de habitación</option>
+<option>Individual</option>
+<option>Doble</option>
+<option>Suite</option>
+</select>
+<input id="precio" type="number" step="0.01" min="0" placeholder="Precio USD" required>
+<select id="disponible">
+<option value="true">Disponible</option>
+<option value="false">Ocupada</option>
+</select>
+</div>
+<p>
+<button type="submit">Guardar habitación</button>
+<button type="button" class="secondary" onclick="limpiar()">Limpiar</button>
+</p>
+</form>
+<div id="mensaje" role="status" aria-live="polite"></div>
+</div>
+<div class="card">
+<h2>Habitaciones registradas</h2>
+<button onclick="cargar()">Actualizar lista</button>
+<div style="overflow-x:auto;margin-top:18px">
+<table>
+<thead><tr><th>ID</th><th>Número</th><th>Tipo</th><th>Precio</th><th>Estado</th><th>Acciones</th></tr></thead>
+<tbody id="tabla"></tbody>
+</table>
+</div>
+</div>
+</main>
+<script>
+const API='/api/habitaciones';
+let habitaciones=[];
+let csrfToken=null;
+let csrfHeader='X-CSRF-TOKEN';
+
+async function iniciar(){
+ try{
+  const r=await fetch('/api/csrf',{credentials:'same-origin'});
+  if(!r.ok)throw Error('No se pudo obtener el token de seguridad');if(r.ok){
+   const data=await r.json();
+   csrfToken=data.token;
+   csrfHeader=data.headerName||csrfHeader;
+  }
+ }catch(e){mensaje(e.message);return;}
+ await cargar();
+}
+function mensaje(t){document.getElementById('mensaje').textContent=t}
+function limpiar(){document.getElementById('formulario').reset();document.getElementById('id').value=''}
+async function solicitud(url,method='GET',data){
+ const headers={};
+ if(data)headers['Content-Type']='application/json';
+ if(csrfToken && method!=='GET')headers[csrfHeader]=csrfToken;
+ const r=await fetch(url,{method,credentials:'same-origin',headers,body:data?JSON.stringify(data):undefined});
+ if(!r.ok){
+  if(r.status===401){location.href='/login.html';throw Error('Inicia sesión')}
+  if(r.status===403)throw Error('Acceso denegado. Comprueba la sesión y el token CSRF.');
+  const error=await r.json().catch(()=>({}));throw Error(error.detail||error.message||('Error HTTP '+r.status));
+ }
+ if(url==='/logout'&&r.ok)return null;
+ if(r.status===204)return null;
+ const text=await r.text();
+ return text?JSON.parse(text):null;
+}
+async function cargar(){
+ try{
+  habitaciones=await solicitud(API);document.getElementById('resumen').textContent=habitaciones.length+' habitaciones · '+habitaciones.filter(h=>h.disponible).length+' disponibles · '+habitaciones.filter(h=>!h.disponible).length+' ocupadas';
+  const tabla=document.getElementById('tabla');
+  tabla.innerHTML='';
+  habitaciones.forEach(h=>{
+   const tr=document.createElement('tr');
+   [h.id,h.numero,h.tipo,'$'+Number(h.precio).toFixed(2),h.disponible?'Disponible':'Ocupada'].forEach(valor=>{
+    const td=document.createElement('td');td.textContent=valor;tr.appendChild(td);
+   });
+   const td=document.createElement('td');td.className='actions';
+   const editar=document.createElement('button');editar.textContent='Editar';editar.onclick=()=>editarHabitacion(h.id);
+   const eliminar=document.createElement('button');eliminar.textContent='Eliminar';eliminar.className='danger';eliminar.onclick=()=>eliminarHabitacion(h.id);
+   td.append(editar,eliminar);tr.appendChild(td);tabla.appendChild(tr);
+  });
+  if(!habitaciones.length)tabla.innerHTML='<tr><td colspan="6">No hay habitaciones registradas</td></tr>';
+ }catch(e){mensaje(e.message)}
+}
+async function editarHabitacion(id){
+ let h;try{h=await solicitud(API+'/'+id)}catch(e){mensaje(e.message);return;}
+ if(!h)return;
+ document.getElementById('id').value=h.id;
+ document.getElementById('numero').value=h.numero;
+ document.getElementById('tipo').value=h.tipo;
+ document.getElementById('precio').value=h.precio;
+ document.getElementById('disponible').value=String(h.disponible);
+ window.scrollTo({top:0,behavior:'smooth'});
+}
+document.getElementById('formulario').addEventListener('submit',async e=>{
+ e.preventDefault();
+ const id=document.getElementById('id').value;
+ const data={
+  numero:Number(document.getElementById('numero').value),
+  tipo:document.getElementById('tipo').value,
+  precio:Number(document.getElementById('precio').value),
+  disponible:document.getElementById('disponible').value==='true'
+ };
+ try{
+  await solicitud(id?API+'/'+id:API,id?'PUT':'POST',data);
+  mensaje(id?'Habitación actualizada correctamente':'Habitación creada correctamente');
+  limpiar();await cargar();
+ }catch(err){mensaje(err.message)}
+});
+async function eliminarHabitacion(id){
+ if(!confirm('¿Eliminar esta habitación?'))return;
+ try{await solicitud(API+'/'+id,'DELETE');mensaje('Habitación eliminada');await cargar()}
+ catch(e){mensaje(e.message)}
+}
+async function cerrarSesion(){try{await solicitud('/logout','POST');location.href='/login.html?logout'}catch(e){mensaje(e.message)}}
+iniciar();
+</script>
+</body>
+</html>
