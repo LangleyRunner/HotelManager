@@ -1,88 +1,84 @@
-HotelManager
+HotelManager es un proyecto universitario para administrar las habitaciones de un hotel. Permite registrar pisos y habitaciones, modificar sus datos y consultar su capacidad, tarifa y estado.
 
-<img width="1142" height="628" alt="image" src="https://github.com/user-attachments/assets/ade7085d-449a-496a-aee3-67ec2cfca201" />
+Esta parte administrativa servirá como base para desarrollar la asignación de habitaciones a huéspedes y grupos.
+Qué incluye
+- Inicio y cierre de sesión.
+- Registro, consulta, edición y eliminación de pisos.
+- Registro, consulta, edición y eliminación de habitaciones.
+- Selección del piso mediante una lista cargada desde la base de datos.
+- Indicadores de habitaciones, plazas configuradas y habitaciones en mantenimiento.
+- Almacenamiento de los datos en PostgreSQL.
+Core del proyecto
+La propuesta es que el sistema encuentre cómo distribuir a un grupo entre las habitaciones disponibles, tomando en cuenta la cantidad de personas, las fechas y preferencias como quedarse en el mismo piso.
 
+Para eso, primero se necesita administrar correctamente la capacidad, el piso, la tarifa y el estado de cada habitación.
 
-Proyecto universitario para administrar las habitaciones de un hotel. Permite iniciar sesión como administrador, registrar habitaciones, cambiar sus datos y eliminarlas. Los usuarios y las habitaciones se guardan en PostgreSQL.
-
-## Qué se puede hacer
-
-- Iniciar y cerrar sesión.
-- Ver cuántas habitaciones hay, cuáles están disponibles y cuáles están ocupadas.
-- Crear, consultar, editar y eliminar habitaciones.
-- Cambiar el número, tipo, precio y disponibilidad de una habitación.
-
-Para acceder a las operaciones hay que iniciar sesión. Las contraseñas se guardan con BCrypt y los formularios usan protección CSRF.
-
-## Tecnologías
-
-- Java 25 y Spring Boot 4.1.1.
-- Spring Security y Spring Data JPA.
-- PostgreSQL 18 y Docker.
+Por ahora está desarrollada esa administración. La asignación automática, las reservas por fechas y el registro de entrada y salida quedan como siguientes etapas.
+Tecnologías utilizadas
+- Java 25.
+- Spring Boot 4.1.1.
+- Spring Security.
+- Spring Data JPA y Hibernate.
+- PostgreSQL.
 - Maven.
 - HTML, CSS y JavaScript.
+- Docker.
+- Git y GitHub.
+La carpeta frontend conserva el proyecto inicial de Ext JS. Como hubo un problema durante su activación, la interfaz que funciona actualmente está hecha con HTML, CSS y JavaScript.
+Organización del código
+El proyecto sigue MVC. Las entidades representan los datos, las páginas HTML muestran la interfaz y los controladores reciben las solicitudes.
 
-El frontend original de Ext JS está en la carpeta `frontend`. Como su instalación presentó un error de activación, la versión actual usa una interfaz HTML, CSS y JavaScript servida por el backend.
+Dentro del backend están estas carpetas:
+- model: entidades de habitaciones, pisos y usuarios.
+- controller: operaciones disponibles en la API.
+- service: reglas para consultar y modificar los datos.
+- repository: acceso a la base de datos.
+- security: configuración del login y los permisos.
+La interfaz se encuentra en backend/src/main/resources/static.
+Validaciones
+La capacidad de una habitación es importante para la futura asignación de huéspedes. Por eso se valida en el backend que sea un número entero mayor que cero, aunque se envíe la solicitud sin usar el formulario.
 
-## Cómo ejecutar el proyecto
+También se comprueba que:
+- La tarifa sea positiva y tenga como máximo dos decimales.
+- El número de habitación sea positivo y no esté repetido.
+- El piso seleccionado exista.
+- El estado operativo sea válido.
+- No se elimine un piso que tenga habitaciones asignadas.
+El acceso a las operaciones requiere el rol ADMIN. Las contraseñas se guardan con BCrypt y las solicitudes de modificación están protegidas con CSRF.
+Cómo ejecutarlo
+Necesitas Java 25, PowerShell y PostgreSQL en ejecución.
 
-Necesitas Java 25, Git, PowerShell y una base PostgreSQL configurada. En el entorno de desarrollo se usa el contenedor `hotelmanager-postgres`, con la base `hotelmanager_db` y el usuario `hotelmanager`, en el puerto 5432.
-
-Clona el repositorio:
-
-```powershell
+Primero clona el repositorio:
 git clone https://github.com/LangleyRunner/HotelManager.git
 cd HotelManager
-```
-
-Con PostgreSQL en ejecución, compila el proyecto:
-
-```powershell
+Compila el proyecto y ejecuta las pruebas:
 powershell -NoProfile -ExecutionPolicy Bypass -File .\Maven.ps1 verify
-```
-
-Luego inicia el backend:
-
-```powershell
+Después inicia la aplicación:
 powershell -NoProfile -ExecutionPolicy Bypass -File .\Start-HotelManager.ps1 -Port 8081
-```
+El script pide la contraseña de PostgreSQL y la del administrador. Luego puedes entrar en:
 
-El script pide la contraseña de la base de datos y la del administrador. Si `admin` ya existe, debes usar su contraseña actual: introducir otra no la cambia.
+http://localhost:8081/login.html
 
-Abre [http://localhost:8081/login.html](http://localhost:8081/login.html) e inicia sesión con el usuario `admin`.
+El usuario es admin, con la contraseña configurada. Para registrar una habitación, primero debes crear un piso.
 
-Para detener el backend, presiona `Ctrl+C` en la terminal. Si el puerto está ocupado, puedes usar otro con `-Port` y cambiar la dirección en el navegador.
+Puedes detener la aplicación con Ctrl+C en la terminal.
+Base de datos
+La configuración local utiliza la base hotelmanager_db, el usuario hotelmanager y el puerto 5432.
 
-Si tu base tiene otra dirección o usuario, configura `DB_URL` y `DB_USER` antes de ejecutar el lanzador. Las contraseñas se pasan mediante `DB_PASSWORD` y `ADMIN_PASSWORD`; no se guardan en el código.
+Si necesitas otra configuración, puedes usar las variables DB_URL, DB_USER y DB_PASSWORD. También se pueden definir por separado DB_HOST, DB_PORT y DB_NAME.
 
-## Organización
+ADMIN_PASSWORD crea el administrador si todavía no existe. No cambia la contraseña de un usuario ya registrado.
+Habitaciones registradas anteriormente
+Los registros anteriores se conservan. Si una habitación no tiene capacidad, piso o estado operativo, aparece como pendiente de configurar. Estos datos se completan desde Editar.
+Pruebas realizadas
+Se ejecutaron 7 pruebas de integración sin fallos. Se revisaron el login, los permisos, el CRUD, las validaciones y la relación entre pisos y habitaciones.
 
-El proyecto sigue MVC:
+También se comprobó que los datos permanecen en PostgreSQL después de reiniciar el backend, conservando la habitación 101.
 
-- **Modelo:** entidades `Habitacion` y `Usuario`, junto con sus repositorios.
-- **Vista:** páginas de login y administración en `backend/src/main/resources/static`.
-- **Controlador:** endpoints que reciben las solicitudes de la interfaz.
-
-La lógica del CRUD está en `HabitacionService` y la configuración de seguridad en la carpeta `security`.
-
-## Pruebas
-<img width="1142" height="634" alt="image" src="https://github.com/user-attachments/assets/093ea314-3a97-4a29-8f53-e526a0febf70" />
-
-La compilación pasó con 3 pruebas automatizadas y sin errores. Estas usan H2 y comprueban autenticación, CRUD, validación y seguridad.
-
-También se probó el acceso con PostgreSQL, el CRUD y la persistencia de la habitación 101 después de reiniciar el backend. Los detalles están en [RESULTADOS-PRUEBAS.md](RESULTADOS-PRUEBAS.md).
-
-Para repetir la prueba de PostgreSQL, detén la ejecución anterior o elige un puerto libre:
-
-```powershell
+Para repetir la verificación, usa un puerto libre:
 powershell -NoProfile -ExecutionPolicy Bypass -File .\Start-HotelManager.ps1 -Verify -Port 8081
-```
-
-## Ayuda y demostración
-
-Si encuentras un error, puedes abrir un [Issue](https://github.com/LangleyRunner/HotelManager/issues) con el mensaje y los pasos para reproducirlo, sin incluir contraseñas.
-
-El [guion de demostración](GUION-DEMO.md) sirve como guía para presentar el login, el CRUD y la seguridad.
+Estado de la entrega
+La administración funciona localmente. Están preparados el Dockerfile y la configuración de Render, pero la publicación todavía está pendiente.
 
 ## Autor
 
