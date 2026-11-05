@@ -87,7 +87,3 @@ La administración funciona localmente. Están preparados el Dockerfile y la con
 ## Licencia
 
 El proyecto todavía no tiene una licencia definida.
-
-No se ha añadido un archivo `LICENSE` para el código propio del proyecto. La licencia queda pendiente de decisión del autor.
-
-Las dependencias mantienen sus licencias respectivas. Sencha Ext JS requiere respetar sus condiciones de licencia y activación; la alternativa temporal no modifica ni omite esa activación.
