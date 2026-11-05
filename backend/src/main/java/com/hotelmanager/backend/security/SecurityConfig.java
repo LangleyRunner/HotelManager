@@ -10,8 +10,8 @@ public class SecurityConfig {
  @Bean public PasswordEncoder passwordEncoder(){return new BCryptPasswordEncoder();}
  @Bean public SecurityFilterChain securityFilterChain(HttpSecurity http, UserDetailsService users) throws Exception {
   http.authorizeHttpRequests(auth -> auth
-   .requestMatchers("/login.html","/login","/api/csrf","/error").permitAll()
-   .requestMatchers("/api/habitaciones/**").hasRole("ADMIN").anyRequest().authenticated())
+   .requestMatchers("/login.html","/login","/api/csrf","/error","/health").permitAll()
+   .requestMatchers("/api/**").hasRole("ADMIN").anyRequest().authenticated())
    .userDetailsService(users)
    .formLogin(form -> form.loginPage("/login.html").loginProcessingUrl("/login")
     .defaultSuccessUrl("/",true).failureUrl("/login.html?error").permitAll())

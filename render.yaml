@@ -1,0 +1,38 @@
+services:
+  - type: web
+    name: hotelmanager
+    runtime: docker
+    plan: free
+    region: oregon
+    dockerfilePath: ./Dockerfile
+    healthCheckPath: /health
+    envVars:
+      - key: DB_HOST
+        fromDatabase:
+          name: hotelmanager-db
+          property: host
+      - key: DB_PORT
+        value: "5432"
+      - key: DB_NAME
+        fromDatabase:
+          name: hotelmanager-db
+          property: database
+      - key: DB_USER
+        fromDatabase:
+          name: hotelmanager-db
+          property: user
+      - key: DB_PASSWORD
+        fromDatabase:
+          name: hotelmanager-db
+          property: password
+      - key: ADMIN_PASSWORD
+        sync: false
+      - key: SESSION_COOKIE_SECURE
+        value: "true"
+
+databases:
+  - name: hotelmanager-db
+    databaseName: hotelmanager_db
+    user: hotelmanager
+    plan: free
+    region: oregon

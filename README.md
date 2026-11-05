@@ -1,252 +1,113 @@
-<h1 align="center">HotelManager</h1>
+# HotelManager
 
-<p align="center">Aplicación web de gestión hotelera con autenticación y persistencia en PostgreSQL.</p>
+HotelManager es un proyecto universitario para administrar las habitaciones de un hotel. Permite registrar pisos y habitaciones, modificar sus datos y consultar su capacidad, tarifa y estado.
 
-![Portada de HotelManager con un edificio ilustrado y las tecnologías principales](docs/hotelmanager-banner.svg)
+Esta administración servirá como base para desarrollar la asignación de habitaciones a huéspedes individuales y grupos.
 
-<p align="center">
-  <img alt="Java 25" src="https://img.shields.io/badge/Java-25-e8af52">
-  <img alt="Spring Boot 4.1.1" src="https://img.shields.io/badge/Spring_Boot-4.1.1-6DB33F">
-  <img alt="PostgreSQL 18" src="https://img.shields.io/badge/PostgreSQL-18-4169E1">
-  <img alt="Estado: funcional en entorno local" src="https://img.shields.io/badge/Estado-Funcional_local-146d83">
-</p>
+## Qué incluye
 
-## Índice
+- Inicio y cierre de sesión del administrador.
+- Crear, consultar, editar y eliminar pisos y habitaciones.
+- Seleccionar el piso desde una lista cargada de la base de datos.
+- Registrar capacidad, tipo, tarifa y estado operativo.
+- Consultar indicadores de habitaciones y plazas configuradas.
+- Guardar la información en PostgreSQL.
 
-- [Descripción](#descripción)
-- [Estado del proyecto](#estado-del-proyecto)
-- [Funcionalidades](#funcionalidades)
-- [Demostración](#demostración)
-- [Tecnologías](#tecnologías)
-- [Arquitectura MVC](#arquitectura-mvc)
-- [Instalación y ejecución](#instalación-y-ejecución)
-- [API y seguridad](#api-y-seguridad)
-- [Pruebas](#pruebas)
-- [Publicación en GitHub](#publicación-en-github)
-- [Ayuda](#ayuda)
-- [Autoría y contribuciones](#autoría-y-contribuciones)
-- [Licencia](#licencia)
+## Core del proyecto
 
-## Descripción
+La propuesta es buscar una distribución de habitaciones según la cantidad de huéspedes, las fechas y preferencias como quedarse en el mismo piso. La capacidad, el piso, la tarifa y el estado de cada habitación alimentarán ese proceso.
 
-HotelManager permite administrar las habitaciones de un hotel desde una interfaz web. El administrador puede registrar habitaciones, consultar sus datos, actualizar precios y disponibilidad y eliminar registros.
-
-El proyecto universitario aplica la arquitectura **MVC**, las operaciones **CRUD**, la autenticación mediante **Spring Security** y la persistencia con **PostgreSQL**.
-
-## Estado del proyecto
-
-**Funcional en el entorno local verificado el 8 de octubre de 2026.**
-
-- Backend compilado y 3 pruebas de integración automatizadas aprobadas.
-- Login, CRUD, CSRF, acceso anónimo bloqueado y logout comprobados contra PostgreSQL.
-- Habitación 101 comprobada después de reiniciar el backend mediante el lanzador de verificación.
-- Interfaz temporal HTML/CSS/JavaScript disponible. El proyecto Sencha Ext JS se conserva; su instalación falla con `spawn EINVAL` durante la activación.
-- Publicación en GitHub y grabación del video pendientes. No hay despliegue público.
-
-Consulta la evidencia y sus límites en [RESULTADOS-PRUEBAS.md](RESULTADOS-PRUEBAS.md). Las insignias de esta portada describen el proyecto; no representan una ejecución de CI en GitHub.
-
-## Funcionalidades
-
-| Función | Descripción |
-| --- | --- |
-| Inicio de sesión | Acceso del administrador mediante usuario y contraseña. |
-| Dashboard | Indicadores de habitaciones totales, disponibles y ocupadas. |
-| Crear y consultar | Formulario de registro, listado y consulta individual. |
-| Editar | Actualización de número, tipo, precio y disponibilidad. |
-| Eliminar | Borrado con confirmación del usuario. |
-| Persistencia | Almacenamiento de usuarios y habitaciones en PostgreSQL. |
-| Seguridad | Rol ADMIN, contraseñas BCrypt, sesiones y protección CSRF. |
-| Cierre de sesión | Invalidación de la sesión mediante POST protegido. |
-
-Cada habitación contiene `id`, `numero`, `tipo`, `precio` y `disponible`. El número es único y el precio se almacena con `BigDecimal`.
-
-## Demostración
-
-1. Abrir [http://localhost:8081/login.html](http://localhost:8081/login.html).
-2. Iniciar sesión con el usuario `admin` y la contraseña configurada.
-3. Revisar el dashboard y la tabla de habitaciones.
-4. Crear una habitación con un número libre; editar su precio o disponibilidad.
-5. Eliminar ese registro temporal y cerrar sesión.
-6. Abrir `/api/habitaciones` sin sesión para mostrar el bloqueo de acceso.
-
-La URL es local: solo funciona en el equipo donde esté iniciado el backend. El guion de presentación de máximo 3 minutos está en [GUION-DEMO.md](GUION-DEMO.md). No se incluye un enlace de video porque aún no se ha publicado.
+Por ahora está desarrollada la administración. La asignación automática, las reservas por fechas y el registro de entrada y salida siguen pendientes.
 
 ## Tecnologías
 
-| Área | Tecnologías |
-| --- | --- |
-| Backend | Java 25, Spring Boot 4.1.1, Maven Wrapper 3.9.16 |
-| Seguridad | Spring Security, BCrypt, sesiones HTTP y CSRF |
-| Persistencia | Spring Data JPA, Hibernate y PostgreSQL 18 |
-| Entorno de base de datos | Docker Desktop; contenedor verificado `hotelmanager-postgres` |
-| Interfaz activa | HTML, CSS y JavaScript con Fetch API |
-| Frontend conservado | Sencha Ext JS 8; Node.js y npm para su instalación |
-| Pruebas automatizadas | JUnit y H2 aislado, con servidor HTTP real |
+Java 25, Spring Boot 4.1.1, Spring Security, Spring Data JPA, Hibernate, PostgreSQL, Maven, HTML, CSS, JavaScript y Docker.
 
-H2 se utiliza exclusivamente en pruebas automatizadas. La aplicación ejecutada utiliza PostgreSQL.
+La carpeta `frontend` conserva el proyecto inicial de Ext JS. La interfaz actual usa HTML, CSS y JavaScript debido a un problema durante su activación.
 
-## Arquitectura MVC
+## Organización del código
 
-| Capa | Responsabilidad | Archivos principales |
-| --- | --- | --- |
-| Modelo | Entidades y acceso a los datos. | `Habitacion`, `Usuario` y repositorios JPA |
-| Vista | Pantallas de login, dashboard y formularios. | `login.html` e `index.html` |
-| Controlador | Endpoints y respuestas HTTP. | `HabitacionController` y `SessionController` |
-| Servicio | Lógica de las operaciones de habitaciones. | `HabitacionService` |
-| Seguridad | Autorización, autenticación y creación inicial de admin. | `SecurityConfig`, `CustomUserDetailsService`, `AdminInitializer` |
+El proyecto sigue MVC. Las entidades representan los datos, las páginas muestran la interfaz y los controladores reciben las solicitudes.
 
-La vista llama a los controladores; estos usan el servicio y los repositorios para consultar PostgreSQL.
+- `model`: entidades Habitación, Piso y Usuario.
+- `controller`: endpoints y validación de las solicitudes.
+- `service`: reglas antes de consultar o modificar datos.
+- `repository`: acceso a PostgreSQL.
+- `security`: login, permisos y CSRF.
 
-```text
-HotelManager/
-├── backend/
-│   ├── src/main/java/com/hotelmanager/backend/
-│   │   ├── controller/
-│   │   ├── model/
-│   │   ├── repository/
-│   │   ├── service/
-│   │   └── security/
-│   ├── src/main/resources/static/
-│   ├── src/test/
-│   └── pom.xml
-├── frontend/hotel-manager-app/
-├── docs/hotelmanager-banner.svg
-├── Maven.ps1
-├── Start-HotelManager.ps1
-└── README.md
-```
+La interfaz está en `backend/src/main/resources/static`.
 
-## Instalación y ejecución
+## Validaciones
 
-### Requisitos
+La capacidad es un dato crítico para el core: una capacidad incorrecta podría generar una distribución sin espacio para todos los huéspedes.
 
-- Java 25.
-- PowerShell para los lanzadores incluidos.
-- PostgreSQL disponible y una base `hotelmanager_db` con el rol `hotelmanager`, o un destino configurado mediante variables de entorno.
-- Docker Desktop si se usa la base del contenedor. En el equipo verificado, PostgreSQL publica `127.0.0.1:5432`.
+El backend valida que la capacidad sea un entero mayor que cero, incluso si se envía una solicitud sin usar el formulario. También comprueba:
 
-La interfaz activa no requiere instalar Node.js, npm ni Ext JS.
+- Tarifa positiva, con hasta dos decimales.
+- Número de habitación positivo y único.
+- Existencia del piso seleccionado.
+- Estado operativo válido.
+- Que un piso con habitaciones no se pueda eliminar.
 
-### Obtener el código
+Las operaciones requieren el rol `ADMIN`. Las contraseñas se guardan con BCrypt y las modificaciones requieren un token CSRF.
 
-Desde GitHub, descargar el ZIP del repositorio o clonarlo cuando se haya publicado:
+## Cómo ejecutarlo
+
+Necesitas Java 25, PowerShell y PostgreSQL en ejecución.
 
 ```powershell
-git clone https://github.com/TU_USUARIO/HotelManager.git
+git clone https://github.com/LangleyRunner/HotelManager.git
 cd HotelManager
-```
-
-Reemplazar `TU_USUARIO` por el propietario real del repositorio. Esta dirección es un ejemplo, no un enlace publicado.
-
-### Compilar
-
-Desde la raíz del proyecto:
-
-```powershell
 powershell -NoProfile -ExecutionPolicy Bypass -File .\Maven.ps1 verify
-```
-
-El lanzador usa Maven del wrapper y la caché del usuario. La compilación genera `backend/target/backend-0.0.1-SNAPSHOT.jar`.
-
-### Iniciar
-
-Con PostgreSQL activo, ejecutar:
-
-```powershell
 powershell -NoProfile -ExecutionPolicy Bypass -File .\Start-HotelManager.ps1 -Port 8081
 ```
 
-El script solicita las contraseñas de forma oculta y las pasa mediante variables de entorno. No las escribe en archivos.
+El lanzador pide las contraseñas de PostgreSQL y del administrador. Después abre [http://localhost:8081/login.html](http://localhost:8081/login.html).
 
-| Variable | Uso |
-| --- | --- |
-| `DB_URL` | URL JDBC; por defecto `jdbc:postgresql://localhost:5432/hotelmanager_db`. |
-| `DB_USER` | Usuario PostgreSQL; por defecto `hotelmanager`. |
-| `DB_PASSWORD` | Contraseña real del rol PostgreSQL. |
-| `ADMIN_PASSWORD` | Crea el administrador si falta; un admin existente conserva su contraseña. |
-| `SERVER_PORT` | Puerto HTTP; el lanzador lo configura con `-Port`. |
+El usuario es `admin`, con su contraseña configurada. Primero registra un piso y luego una habitación. Para detener la aplicación en primer plano, presiona `Ctrl+C`.
 
-Abrir **[http://localhost:8081/login.html](http://localhost:8081/login.html)** y usar `admin` con su contraseña configurada. Para detener una ejecución en primer plano, presionar `Ctrl+C`.
+La configuración local usa la base `hotelmanager_db`, el usuario `hotelmanager` y el puerto `5432`. Se puede cambiar mediante `DB_URL`, `DB_USER` y `DB_PASSWORD`, o definir `DB_HOST`, `DB_PORT` y `DB_NAME` por separado.
 
-En el equipo de desarrollo, 8080 responde con un servidor anterior. Se usa 8081 para esta versión; si está ocupado, elegir un puerto libre y ajustar la URL.
+`ADMIN_PASSWORD` crea el administrador si falta; no cambia la contraseña de un usuario existente. No hay credenciales incluidas en el repositorio.
 
-## API y seguridad
+## Registros anteriores
 
-| Método | Endpoint | Operación |
-| --- | --- | --- |
-| GET | `/api/habitaciones` | Listar habitaciones |
-| GET | `/api/habitaciones/{id}` | Consultar una habitación |
-| POST | `/api/habitaciones` | Crear |
-| PUT | `/api/habitaciones/{id}` | Editar |
-| DELETE | `/api/habitaciones/{id}` | Eliminar |
-
-Todos los endpoints de habitaciones requieren el rol **ADMIN**. Las contraseñas se almacenan como hashes **BCrypt**; no se incluyen credenciales en este README.
-
-`GET /api/csrf` entrega el token vinculado a la sesión. Login, logout y mutaciones deben enviar ese token; la vista obtiene uno nuevo después de iniciar sesión.
-
-Respuestas principales: `201` al crear, `204` al eliminar, `400` para datos inválidos, `401` sin autenticación, `403` ante una mutación sin CSRF, `404` para un registro inexistente y `409` para un número duplicado.
+Las habitaciones anteriores se conservan. Si les falta capacidad, piso o estado operativo, aparecen como pendientes de configurar. Estos datos se completan desde **Editar**.
 
 ## Pruebas
 
-### Automatizadas
+El 5 de noviembre de 2026 se ejecutaron 7 pruebas de integración sin fallos. Se comprobaron autenticación, permisos, CSRF, CRUD, validación del backend y relaciones entre tablas.
 
-```powershell
-powershell -NoProfile -ExecutionPolicy Bypass -File .\Maven.ps1 verify
-```
+También se comprobó la persistencia en PostgreSQL después de reiniciar el backend, conservando la habitación 101. La interfaz se verificó con pruebas DOM conectadas a la API real; no equivale a una revisión manual completa del navegador.
 
-Resultado comprobado: **3 pruebas, 0 fallos, 0 errores**. Cubren login, BCrypt, CRUD, validación, duplicados, CSRF y logout con H2 aislado y un puerto aleatorio.
-
-### PostgreSQL y reinicio
-
-Con un puerto libre:
+Para repetir la verificación de PostgreSQL, usa un puerto libre:
 
 ```powershell
 powershell -NoProfile -ExecutionPolicy Bypass -File .\Start-HotelManager.ps1 -Verify -Port 8081
 ```
 
-Esta verificación crea 101 solo si falta, comprueba edición y restaura sus datos; elimina un registro de prueba separado, reinicia su propio backend y consulta 101 otra vez. Si pasa, genera `VERIFICACION-POSTGRESQL.txt` y deja el backend activo mostrando su PID.
+## Despliegue
 
-Las pruebas automatizadas con H2 y la verificación PostgreSQL son comprobaciones distintas. La revisión visual de clics en navegador no se ha completado.
+El `Dockerfile` y `render.yaml` preparan el despliegue en Render con una base PostgreSQL separada. La configuración YAML se validó contra el esquema oficial, pero la construcción de la imagen no se comprobó desde este entorno.
 
-## Publicación en GitHub
+Para publicarlo:
 
-Crear un repositorio vacío y ejecutar desde la raíz:
+1. Crear una cuenta en Render y conectar este repositorio.
+2. Crear un **Blueprint** usando `render.yaml`.
+3. Introducir `ADMIN_PASSWORD` cuando Render lo solicite.
+4. Revisar los planes y confirmar la creación del servicio y la base.
+5. Cuando termine, abrir la URL HTTPS asignada y entrar en `/login.html`.
 
-```powershell
-git init
-git add .
-git status
-git diff --cached
-git commit -m "Documentar HotelManager y completar gestion de habitaciones"
-git branch -M main
-git remote add origin https://github.com/TU_USUARIO/HotelManager.git
-git push -u origin main
-```
+Las credenciales de la base se obtienen desde Render; el backend usa su variable `PORT`. La ruta `/health` comprueba la conexión sin mostrar credenciales.
 
-Reemplazar la URL por la del repositorio real. Revisar los archivos preparados antes del commit. `.gitignore` excluye secretos, `.npmrc`, logs, cachés, `target` y `node_modules`. No subir archivos de datos o volúmenes PostgreSQL.
+El despliegue público sigue pendiente. Según la [documentación de Render](https://render.com/docs/free), la base gratuita caduca a los 30 días. La base local no se copia automáticamente al nuevo servicio.
 
-## Ayuda
+## Demostración
 
-| Problema | Acción |
-| --- | --- |
-| `password authentication failed` | Verificar la contraseña de PostgreSQL; no es necesariamente la misma del login web. Para el contenedor de este proyecto, usar `Recover-DockerDatabasePassword.ps1`, que comprueba el acceso local antes de cambiarla. |
-| Login rechazado | Usar la contraseña del admin existente. Cambiar `ADMIN_PASSWORD` no restablece un usuario ya creado. |
-| Puerto ocupado | Elegir otro con `-Port`; no detener procesos ajenos. |
-| Archivos de `target` bloqueados | Detener la ejecución propia de HotelManager antes de limpiar. |
-| Fallo de Ext JS | Consultar [DIAGNOSTICO-EXTJS.md](frontend/DIAGNOSTICO-EXTJS.md) y usar la interfaz temporal. |
+El guion está en [GUION-DEMO.md](GUION-DEMO.md). Antes de grabar la entrega final hay que completar el despliegue y mostrar la dirección pública, tal como pide la consigna.
 
-Más información: [resultados de pruebas](RESULTADOS-PRUEBAS.md), [resumen universitario](RESUMEN-UNIVERSITARIO.md) y [guion de demostración](GUION-DEMO.md).
+## Autor
 
-Cuando se publique el repositorio, usar su sección **Issues** para reportar errores, indicando el comando, el puerto y el mensaje recibido, sin contraseñas.
+[LangleyRunner](https://github.com/LangleyRunner)
 
-## Autoría y contribuciones
-
-**Autor del proyecto:** LangleyRunner.
-
-No se han identificado colaboradores adicionales. Para proponer una mejora, abrir un Issue o un Pull Request cuando el repositorio esté publicado, explicando el cambio y cómo se comprobó.
-
-## Licencia
-
-No se ha añadido un archivo `LICENSE` para el código propio del proyecto. La licencia queda pendiente de decisión del autor.
-
-Las dependencias mantienen sus licencias respectivas. Sencha Ext JS requiere respetar sus condiciones de licencia y activación; la alternativa temporal no modifica ni omite esa activación.
+El proyecto aún no tiene una licencia propia definida.

@@ -1,0 +1,12 @@
+.git
+**/target
+**/node_modules
+**/.npm-cache
+**/build
+**/*.log
+**/.env
+**/.env.*
+**/.npmrc
+.vscode
+outputs
+work

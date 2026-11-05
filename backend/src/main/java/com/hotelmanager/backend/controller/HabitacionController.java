@@ -31,14 +31,14 @@ public class HabitacionController {
 
     @PostMapping
     @ResponseStatus(HttpStatus.CREATED)
-    public Habitacion crear(@Valid @RequestBody Habitacion habitacion) {
+    public Habitacion crear(@Valid @RequestBody HabitacionRequest habitacion) {
         return service.crear(habitacion);
     }
 
     @PutMapping("/{id}")
     public Habitacion actualizar(
             @PathVariable Long id,
-            @Valid @RequestBody Habitacion habitacion) {
+            @Valid @RequestBody HabitacionRequest habitacion) {
         return service.actualizar(id, habitacion);
     }
 
