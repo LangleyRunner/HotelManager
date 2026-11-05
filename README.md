@@ -1,4 +1,4 @@
-HotelManager es un proyecto universitario para administrar las habitaciones de un hotel. Permite registrar pisos y habitaciones, modificar sus datos y consultar su capacidad, tarifa y estado.
+HotelManager es un proyecto para administrar las habitaciones de un hotel. Permite registrar pisos y habitaciones, modificar sus datos y consultar su capacidad, tarifa y estado.
 
 Esta parte administrativa servirá como base para desarrollar la asignación de habitaciones a huéspedes y grupos.
 Qué incluye
